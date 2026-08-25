@@ -17,6 +17,10 @@ CoffeeBean 工具模块（**独立模块**，不依赖任何 CoffeeBean 模块�
 | `CCollectionUtils` | 集合工具（判空 / 安全索引 / 随机 / 交换 / 去重合并） |
 | `CJson` | JSON 工具（容错读写 / 覆盖反序列化 / 合法性检查） |
 | `CLog` | 统一日志门面（[Tag] 格式 / 按级别开关） |
+| `CRandom` | 随机工具（权重随机 / 洗牌 / 带种子控制） |
+| `CEnum` | 枚举工具（安全解析 / 类型化取值 / 数量统计） |
+| `CMath` | 数学工具（重映射 / 范围 / 进度 / 回绕 / 泛型钳制） |
+| `CFile` | 文件工具（文本 / 字节 / JSON 磁盘读写） |
 
 > 命名约定：`C` 前缀 = CoffeeBean 框架自有类型（后续框架类型命名沿用）。
 
@@ -35,6 +39,10 @@ Runtime/
 ├── Persistence/   CPrefs
 ├── Time/          CTime
 ├── UnityObject/   CGameObject
+├── Random/        CRandom
+├── Enum/          CEnum
+├── Math/          CMath
+├── IO/            CFile
 └── Bridge/        与 Core 的可选集成（安装 Core 时编译）
 ```
 
@@ -43,7 +51,7 @@ Runtime/
 ```json
 {
   "dependencies": {
-    "com.coffeebean.tools": "https://github.com/Herschy0829/com.coffeebean.tools.git#v0.3.0"
+    "com.coffeebean.tools": "https://github.com/Herschy0829/com.coffeebean.tools.git#v0.4.0"
   }
 }
 ```
