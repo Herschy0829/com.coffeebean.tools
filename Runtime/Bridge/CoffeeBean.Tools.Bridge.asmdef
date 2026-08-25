@@ -1,0 +1,19 @@
+{
+  "name": "CoffeeBean.Tools.Bridge",
+  "rootNamespace": "CoffeeBean.Tools",
+  "references": [
+    "CoffeeBean.Tools",
+    "CoffeeBean.Core"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "COFFEEBEAN_CORE"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

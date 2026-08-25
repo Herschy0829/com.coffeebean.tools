@@ -1,0 +1,20 @@
+{
+  "name": "com.coffeebean.tools",
+  "version": "0.1.0",
+  "displayName": "CoffeeBean Tools",
+  "description": "Standalone utility module for the CoffeeBean framework: thread-safe singleton, MonoSingleton, Unity main-thread dispatcher, thread-pool runner. No dependency on other CoffeeBean modules.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Herschy0829"
+  },
+  "keywords": ["coffeebean", "tools", "singleton", "thread", "main-thread"],
+  "dependencies": {},
+  "testables": ["com.coffeebean.tools"],
+  "samples": [
+    {
+      "displayName": "Tools Demo",
+      "description": "工具模块示例：单例、后台线程投递到主线程、延迟执行、线程池限流。",
+      "path": "Samples~/ToolsDemo"
+    }
+  ]
+}

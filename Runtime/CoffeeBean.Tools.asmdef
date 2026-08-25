@@ -1,0 +1,20 @@
+{
+  "name": "CoffeeBean.Tools",
+  "rootNamespace": "CoffeeBean.Tools",
+  "references": [],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [
+    {
+      "name": "com.coffeebean.core",
+      "expression": "",
+      "define": "COFFEEBEAN_CORE"
+    }
+  ],
+  "noEngineReferences": false
+}
