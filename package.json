@@ -1,6 +1,6 @@
 {
   "name": "com.coffeebean.tools",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "displayName": "CoffeeBean Tools",
   "description": "Standalone utility module for the CoffeeBean framework: thread-safe singleton, MonoSingleton, Unity main-thread dispatcher, thread-pool runner. No dependency on other CoffeeBean modules.",
   "unity": "6000.0",

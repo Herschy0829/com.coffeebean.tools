@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.0] - 2025-xx-xx
+
+### Added
+- `CSafeInvoke`：安全调用（异常隔离，SDK/事件回调不被打断；带参与返回值重载）
+- `CReflection`：按名称解析类型（完整名 / 短名 / 简单名，结果缓存）
+- `CPrefs`：PlayerPrefs 强类型封装（基础类型 / 枚举 / JSON，可带键前缀）
+- `CGameObject`：GameObject 便捷工具（GetOrAddComponent / 建子物体 / 批量销毁）
+- `CTime`：Unix 时间戳与时长格式化（倒计时 / 在线时长）
+- 上述工具对应 EditMode 测试
+
 ## [0.1.0] - 2025-xx-xx
 
 ### Added
