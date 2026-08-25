@@ -39,7 +39,7 @@ namespace CoffeeBean.Tools.Tests
 
             Assert.AreEqual(0, order.Count, "投递后未执行前不应有任何动作运行");
 
-            dispatcher.ExecutePendingActions(Time.time);
+            dispatcher.ExecutePendingActions(Time.time, Time.unscaledTime);
 
             CollectionAssert.AreEqual(new[] { 1, 2, 3 }, order);
         }
@@ -54,17 +54,39 @@ namespace CoffeeBean.Tools.Tests
             MainThreadDispatcher.PostDelayed(() => immediate++, 0.1f);
             MainThreadDispatcher.PostDelayed(() => later++, 10f);
 
-            dispatcher.ExecutePendingActions(now);
+            dispatcher.ExecutePendingActions(now, Time.unscaledTime);
             Assert.AreEqual(0, immediate);
             Assert.AreEqual(0, later);
 
-            dispatcher.ExecutePendingActions(now + 0.2f);
+            dispatcher.ExecutePendingActions(now + 0.2f, Time.unscaledTime);
             Assert.AreEqual(1, immediate);
             Assert.AreEqual(0, later);
 
-            dispatcher.ExecutePendingActions(now + 11f);
+            dispatcher.ExecutePendingActions(now + 11f, Time.unscaledTime);
             Assert.AreEqual(1, immediate);
             Assert.AreEqual(1, later);
+        }
+
+        [Test]
+        public void PostDelayedUnscaled_UsesUnscaledClock()
+        {
+            var dispatcher = _dispatcherGo.GetComponent<MainThreadDispatcher>();
+            int scaled = 0;
+            int unscaled = 0;
+            float now = Time.time;
+            float unow = Time.unscaledTime;
+            MainThreadDispatcher.PostDelayed(() => scaled++, 10f);          // 基于 Time.time
+            MainThreadDispatcher.PostDelayedUnscaled(() => unscaled++, 0.1f); // 基于 Time.unscaledTime
+
+            // scaled 时钟前进 11s、unscaled 时钟原地：只有 PostDelayed 到期
+            dispatcher.ExecutePendingActions(now + 11f, unow);
+            Assert.AreEqual(1, scaled);
+            Assert.AreEqual(0, unscaled);
+
+            // scaled 时钟原地、unscaled 时钟前进 0.2s：只有 PostDelayedUnscaled 到期
+            dispatcher.ExecutePendingActions(now, unow + 0.2f);
+            Assert.AreEqual(1, scaled);
+            Assert.AreEqual(1, unscaled);
         }
 
         [Test]
@@ -85,7 +107,7 @@ namespace CoffeeBean.Tools.Tests
             MainThreadDispatcher.Post(() => after++);
 
             LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("主线程动作执行异常"));
-            Assert.DoesNotThrow(() => dispatcher.ExecutePendingActions(Time.time));
+            Assert.DoesNotThrow(() => dispatcher.ExecutePendingActions(Time.time, Time.unscaledTime));
             Assert.AreEqual(1, after);
         }
 
@@ -106,7 +128,7 @@ namespace CoffeeBean.Tools.Tests
             thread.Start();
             thread.Join();
 
-            dispatcher.ExecutePendingActions(Time.time);
+            dispatcher.ExecutePendingActions(Time.time, Time.unscaledTime);
 
             Assert.AreEqual(1, executed, "后台线程投递的动作应被主线程队列执行");
             Assert.IsTrue(onMainThread, "动作应在主线程执行");

@@ -16,7 +16,8 @@ namespace CoffeeBean.Tools
     /// <code>
     /// MainThreadDispatcher.Post(() => text.text = "更新");   // 投递到主线程
     /// MainThreadDispatcher.RunOnMainThread(() => ...);       // 已在主线程则立即执行
-    /// MainThreadDispatcher.PostDelayed(() => ..., 1f);        // 延迟 1 秒
+    /// MainThreadDispatcher.PostDelayed(() => ..., 1f);        // 延迟 1 秒（受 timeScale 影响）
+    /// MainThreadDispatcher.PostDelayedUnscaled(() => ..., 1f);// 延迟 1 秒（不受 timeScale 影响）
     /// MainThreadDispatcher.IsMainThread                       // 是否主线程
     /// </code>
     ///
@@ -29,6 +30,7 @@ namespace CoffeeBean.Tools
         private struct DelayedAction
         {
             public float ExecTime;
+            public bool Unscaled;
             public Action Action;
         }
 
@@ -76,7 +78,7 @@ namespace CoffeeBean.Tools
             EnsureInstance()._pending.Enqueue(() => action(arg));
         }
 
-        /// <summary>延迟执行（秒；延迟基于 Time.time）。</summary>
+        /// <summary>延迟执行（秒；延迟基于 Time.time，受 timeScale 影响）。</summary>
         public static void PostDelayed(Action action, float delaySeconds)
         {
             if (action == null) throw new ArgumentNullException(nameof(action));
@@ -84,6 +86,23 @@ namespace CoffeeBean.Tools
             EnsureInstance()._delayed.Enqueue(new DelayedAction
             {
                 ExecTime = Time.time + delaySeconds,
+                Unscaled = false,
+                Action = action,
+            });
+        }
+
+        /// <summary>
+        /// 延迟执行（秒；延迟基于 Time.unscaledTime，不受 timeScale 影响）。
+        /// 适合暂停菜单 / 慢动作等 timeScale 被修改场景下的倒计时、隐藏提示等逻辑。
+        /// </summary>
+        public static void PostDelayedUnscaled(Action action, float delaySeconds)
+        {
+            if (action == null) throw new ArgumentNullException(nameof(action));
+            if (delaySeconds < 0f) delaySeconds = 0f;
+            EnsureInstance()._delayed.Enqueue(new DelayedAction
+            {
+                ExecTime = Time.unscaledTime + delaySeconds,
+                Unscaled = true,
                 Action = action,
             });
         }
@@ -108,14 +127,15 @@ namespace CoffeeBean.Tools
 
         private void Update()
         {
-            ExecutePendingActions(Time.time);
+            ExecutePendingActions(Time.time, Time.unscaledTime);
         }
 
         /// <summary>
         /// 执行所有到期动作（主线程消费；internal 供单元测试直接驱动）。
         /// 异常按条捕获并记录，避免单个动作异常中断整帧后续动作。
+        /// scaledNow 用于 PostDelayed（Time.time），unscaledNow 用于 PostDelayedUnscaled（Time.unscaledTime）。
         /// </summary>
-        internal void ExecutePendingActions(float now)
+        internal void ExecutePendingActions(float scaledNow, float unscaledNow)
         {
             // 立即队列：无锁取出执行
             while (_pending.TryDequeue(out Action action))
@@ -129,6 +149,7 @@ namespace CoffeeBean.Tools
             var deferred = new List<DelayedAction>(_delayed.Count);
             while (_delayed.TryDequeue(out DelayedAction item))
             {
+                float now = item.Unscaled ? unscaledNow : scaledNow;
                 if (item.ExecTime <= now)
                 {
                     try { item.Action(); }

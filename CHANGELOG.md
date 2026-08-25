@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.1] - 2025-xx-xx
+
+### Added
+- `MainThreadDispatcher.PostDelayedUnscaled`：基于 `Time.unscaledTime` 的延迟执行，不受 timeScale 影响
+  （暂停菜单 / 慢动作等 timeScale 被修改场景下的倒计时、隐藏提示）
+
+### Fixed
+- `CSingletonMono` 多实例清理：播放模式改用 `Destroy`（帧末销毁，符合 Unity 生命周期约定），
+  编辑器 / 测试环境仍用 `DestroyImmediate` 立即清理
+
+### Changed
+- 示例同步：ToolsDemo 增加 PostDelayedUnscaled 演示按钮
+
 ## [0.4.0] - 2025-xx-xx
 
 ### Added

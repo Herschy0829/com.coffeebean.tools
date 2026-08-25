@@ -65,7 +65,14 @@ namespace CoffeeBean.Tools
             if (found.Length > 1)
             {
                 Debug.LogError($"[CoffeeBean.Tools] 场景中存在多个 {typeof(T).Name} 实例，已保留第一个并清理其余。");
-                for (int i = found.Length - 1; i > 0; i--) DestroyImmediate(found[i].gameObject);
+                for (int i = found.Length - 1; i > 0; i--)
+                {
+                    GameObject duplicate = found[i].gameObject;
+                    // 播放模式用 Destroy（帧末销毁，符合 Unity 生命周期约定，避免 DestroyImmediate
+                    // 在物理/迭代器等回调中破坏遍历）；编辑器 / 测试环境用 DestroyImmediate 立即清理。
+                    if (Application.isPlaying) Destroy(duplicate);
+                    else DestroyImmediate(duplicate);
+                }
             }
             return found[0];
         }

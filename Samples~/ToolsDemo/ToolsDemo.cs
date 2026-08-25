@@ -40,6 +40,7 @@ namespace CoffeeBean.Tools.Samples
             if (GUILayout.Button("后台线程投递 → 主线程", GUILayout.Height(32))) SpawnBackgroundPost();
             if (GUILayout.Button("RunOnMainThread（已主线程则立即）", GUILayout.Height(32))) RunOnMainThread();
             if (GUILayout.Button("PostDelayed 延迟 1 秒", GUILayout.Height(32))) PostDelayedDemo();
+            if (GUILayout.Button("PostDelayedUnscaled 延迟 1 秒", GUILayout.Height(32))) PostDelayedUnscaledDemo();
             if (GUILayout.Button("ThreadUtil.RunAsync（后台计算）", GUILayout.Height(32))) RunAsyncDemo();
 
             GUILayout.Space(10);
@@ -87,6 +88,17 @@ namespace CoffeeBean.Tools.Samples
                 Log("PostDelayed 延迟 1 秒执行完成");
             }, 1f);
             Log("已投递延迟动作（1 秒后执行）");
+        }
+
+        private void PostDelayedUnscaledDemo()
+        {
+            // 不受 timeScale 影响：暂停菜单 / 慢动作时仍按真实时间执行
+            MainThreadDispatcher.PostDelayedUnscaled(() =>
+            {
+                _mainThreadCounter++;
+                Log("PostDelayedUnscaled 延迟 1 秒执行完成（不受 timeScale 影响）");
+            }, 1f);
+            Log("已投递延迟动作（1 秒后执行，不受 timeScale 影响）");
         }
 
         private void RunAsyncDemo()
