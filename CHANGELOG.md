@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0] - 2025-xx-xx
+
+### Added
+- `CString`：字符串工具（数字提取 / 容错解析 / 十六进制转换 / 首字母大写）
+- `CCollectionUtils`：集合工具（判空 / 安全索引 / 随机 / 交换 / 去重合并）
+- `CJson`：JSON 工具（容错读写 / 覆盖反序列化 / 合法性检查）
+- `CLog`：统一日志门面（[Tag] 格式 / 按级别开关）
+- 上述工具对应 EditMode 测试
+
+### Changed
+- **目录结构按类别分组**：Runtime 与 Tests 拆分为 Core / Singleton / Threading / Text /
+  Collections / Json / Log / Reflection / Persistence / Time / UnityObject 等子目录
+  （单程序集不变，仅文件组织优化，便于查找）
+
 ## [0.2.0] - 2025-xx-xx
 
 ### Added

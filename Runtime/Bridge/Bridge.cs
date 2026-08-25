@@ -6,7 +6,7 @@ using CoffeeBean;
 
 [assembly: CoffeeBeanModule(
     "com.coffeebean.tools",
-    "0.2.0",
+    "0.3.0",
     DisplayName = "Tools",
     Description = "Standalone utility module: singleton, MonoSingleton, main-thread dispatcher, thread pool.",
     Dependencies = new[] { "com.coffeebean.core" }

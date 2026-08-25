@@ -13,15 +13,37 @@ CoffeeBean 工具模块（**独立模块**，不依赖任何 CoffeeBean 模块�
 | `CPrefs` | PlayerPrefs 强类型封装（int/float/string/bool/枚举/JSON + 键前缀） |
 | `CGameObject` | GameObject 便捷工具（GetOrAddComponent / 建子物体 / 批量销毁） |
 | `CTime` | 时间戳与时长格式化（倒计时 / 在线时长显示） |
+| `CString` | 字符串工具（数字提取 / 容错解析 / 十六进制 / 首字母大写） |
+| `CCollectionUtils` | 集合工具（判空 / 安全索引 / 随机 / 交换 / 去重合并） |
+| `CJson` | JSON 工具（容错读写 / 覆盖反序列化 / 合法性检查） |
+| `CLog` | 统一日志门面（[Tag] 格式 / 按级别开关） |
 
 > 命名约定：`C` 前缀 = CoffeeBean 框架自有类型（后续框架类型命名沿用）。
+
+## 目录结构
+
+```
+Runtime/
+├── Core/          CSafeInvoke（安全调用）
+├── Singleton/     CSingleton / CSingletonMono
+├── Threading/     MainThreadDispatcher / ThreadUtil
+├── Text/          CString
+├── Collections/   CCollectionUtils
+├── Json/          CJson
+├── Log/           CLog
+├── Reflection/    CReflection
+├── Persistence/   CPrefs
+├── Time/          CTime
+├── UnityObject/   CGameObject
+└── Bridge/        与 Core 的可选集成（安装 Core 时编译）
+```
 
 ## 安装
 
 ```json
 {
   "dependencies": {
-    "com.coffeebean.tools": "https://github.com/Herschy0829/com.coffeebean.tools.git#v0.2.0"
+    "com.coffeebean.tools": "https://github.com/Herschy0829/com.coffeebean.tools.git#v0.3.0"
   }
 }
 ```
