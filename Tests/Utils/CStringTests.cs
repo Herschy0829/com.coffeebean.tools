@@ -1,4 +1,3 @@
-using CoffeeBean.Tools;
 using NUnit.Framework;
 
 namespace CoffeeBean.Tools.Tests

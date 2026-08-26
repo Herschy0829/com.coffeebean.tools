@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using UnityEngine;
 
-namespace CoffeeBean.Tools
+namespace CoffeeBean
 {
     /// <summary>
     /// 线程池工具：带并发上限的后台执行（替代"忙等限流"的低效实现）。

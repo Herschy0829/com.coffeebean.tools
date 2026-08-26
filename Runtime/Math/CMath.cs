@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace CoffeeBean.Tools
+namespace CoffeeBean
 {
     /// <summary>
     /// 数学工具：值重映射、范围判断、进度、回绕（角度/循环）、泛型钳制。

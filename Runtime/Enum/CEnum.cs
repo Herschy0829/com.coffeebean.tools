@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace CoffeeBean.Tools
+namespace CoffeeBean
 {
     /// <summary>
     /// 枚举工具：安全解析（忽略大小写）、类型化取值（带缓存）、数量统计。

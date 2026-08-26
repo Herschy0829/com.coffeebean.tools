@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace CoffeeBean.Tools
+namespace CoffeeBean
 {
     /// <summary>
     /// GameObject 便捷工具：高频且零碎的 Unity 对象操作。

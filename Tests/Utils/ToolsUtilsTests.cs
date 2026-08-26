@@ -1,5 +1,4 @@
 using System;
-using CoffeeBean.Tools;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -55,7 +54,7 @@ namespace CoffeeBean.Tools.Tests
         [Test]
         public void Reflection_ByFullName_Resolved()
         {
-            Type type = CReflection.GetType("CoffeeBean.Tools.CSafeInvoke");
+            Type type = CReflection.GetType("CoffeeBean.CSafeInvoke");
             Assert.IsNotNull(type);
             Assert.AreEqual(typeof(CSafeInvoke), type);
         }

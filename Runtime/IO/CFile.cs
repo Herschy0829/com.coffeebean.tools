@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using UnityEngine;
 
-namespace CoffeeBean.Tools
+namespace CoffeeBean
 {
     /// <summary>
     /// 文件工具：文本 / 字节 / JSON 的磁盘读写（显式路径，不绑定平台目录）。

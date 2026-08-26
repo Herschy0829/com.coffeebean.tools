@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace CoffeeBean.Tools
+namespace CoffeeBean
 {
     /// <summary>
     /// 反射工具：按名称解析类型（用于字符串配置、序列化恢复、数据驱动等场景）。

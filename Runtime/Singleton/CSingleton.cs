@@ -1,6 +1,6 @@
 using System;
 
-namespace CoffeeBean.Tools
+namespace CoffeeBean
 {
     /// <summary>
     /// CoffeeBean 框架专属：纯 C# 泛型单例（线程安全、懒加载）。

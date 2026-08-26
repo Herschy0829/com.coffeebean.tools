@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace CoffeeBean.Tools
+namespace CoffeeBean
 {
     /// <summary>
     /// 字符串工具：常见文本处理（数字提取 / 容错解析 / 十六进制转换 / 大小写）。

@@ -1,5 +1,4 @@
 using System;
-using CoffeeBean.Tools;
 using NUnit.Framework;
 using UnityEngine.TestTools;
 using UnityEngine;

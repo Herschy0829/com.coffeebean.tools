@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using CoffeeBean.Tools;
 using NUnit.Framework;
 
 namespace CoffeeBean.Tools.Tests

@@ -1,6 +1,6 @@
 using System;
 
-namespace CoffeeBean.Tools
+namespace CoffeeBean
 {
     /// <summary>
     /// 时间工具：Unix 时间戳与时长格式化（倒计时 / 在线时长 / 排行榜显示等）。

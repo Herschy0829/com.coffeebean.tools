@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace CoffeeBean.Tools
+namespace CoffeeBean
 {
     /// <summary>
     /// PlayerPrefs 强类型封装：类型安全、可带键前缀避免命名冲突、支持枚举与 JSON 对象。

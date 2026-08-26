@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace CoffeeBean.Tools
+namespace CoffeeBean
 {
     /// <summary>
     /// CoffeeBean 框架专属：MonoBehaviour 单例基类（主线程创建）。

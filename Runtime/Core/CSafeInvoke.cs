@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace CoffeeBean.Tools
+namespace CoffeeBean
 {
     /// <summary>
     /// 安全调用工具：执行委托并捕获异常（记录日志），避免单个回调异常中断调用链或整帧。

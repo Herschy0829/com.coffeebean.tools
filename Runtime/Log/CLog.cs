@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace CoffeeBean.Tools
+namespace CoffeeBean
 {
     /// <summary>
     /// 统一日志门面：统一输出格式（[Tag] message）、按级别开关、支持全局静音与检索。

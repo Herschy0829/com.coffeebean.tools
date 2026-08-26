@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
 
-namespace CoffeeBean.Tools
+namespace CoffeeBean
 {
     /// <summary>
     /// Unity 主线程调度器：允许任意线程把 Action 投递到主线程执行（在 Update 中消费）。

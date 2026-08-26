@@ -1,6 +1,5 @@
 using System;
 using System.Threading;
-using CoffeeBean.Tools;
 using NUnit.Framework;
 
 namespace CoffeeBean.Tools.Tests

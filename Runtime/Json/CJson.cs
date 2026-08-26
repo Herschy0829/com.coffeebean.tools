@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace CoffeeBean.Tools
+namespace CoffeeBean
 {
     /// <summary>
     /// JSON 工具（基于 JsonUtility）：带容错与默认值的读写封装。
