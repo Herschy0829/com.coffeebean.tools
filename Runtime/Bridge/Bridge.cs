@@ -1,4 +1,4 @@
-#if COFFEEBEAN_CORE
+﻿#if COFFEEBEAN_CORE
 // CoffeeBean 模块标识 + Core 生命周期集成。
 // 本文件所在的 Bridge 程序集仅在安装 Core 时编译（asmdef defineConstraints），
 // 因此工具模块本身不依赖 Core 也能独立工作。
@@ -6,7 +6,7 @@ using CoffeeBean;
 
 [assembly: CoffeeBeanModule(
     "com.coffeebean.tools",
-    "0.5.0",
+    "0.6.0",
     DisplayName = "Tools",
     Description = "Standalone utility module: singleton, MonoSingleton, main-thread dispatcher, thread pool.",
     Dependencies = new[] { "com.coffeebean.core" }

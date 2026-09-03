@@ -1,4 +1,4 @@
-# com.coffeebean.tools
+﻿# com.coffeebean.tools
 
 CoffeeBean 工具模块（**独立模块**，不依赖任何 CoffeeBean 模块，其他模块可依赖它）。
 
@@ -51,7 +51,7 @@ Runtime/
 ```json
 {
   "dependencies": {
-    "com.coffeebean.tools": "https://github.com/Herschy0829/com.coffeebean.tools.git#v0.4.0"
+    "com.coffeebean.tools": "https://github.com/Herschy0829/com.coffeebean.tools.git#v0.6.0"
   }
 }
 ```

@@ -16,6 +16,12 @@ namespace CoffeeBean
     /// </code>
     ///
     /// 约定：tag 用系统/模块名（如 "IAP"、"Network"），便于按标签过滤日志。
+    ///
+    /// 构建模式（Beta/Release，见 docs/design-build-modes.md）：
+    /// - Info/Warn 方法体按 `#if UNITY_EDITOR || COFFEEBEAN_LOG` 编译：
+    ///   Editor 下（无论 Beta/Release 模式）恒有日志；Beta 包（定义 COFFEEBEAN_LOG）有日志；
+    ///   Release 包两者皆无 → 方法体为空（日志剥离）。
+    /// - Error 无条件保留（正式包错误仍可见，可经打点上送）。
     /// </summary>
     public static class CLog
     {
@@ -30,12 +36,16 @@ namespace CoffeeBean
 
         public static void Info(string tag, string message)
         {
+#if UNITY_EDITOR || COFFEEBEAN_LOG
             if (InfoEnabled) Debug.Log(Format(tag, message));
+#endif
         }
 
         public static void Warn(string tag, string message)
         {
+#if UNITY_EDITOR || COFFEEBEAN_LOG
             if (WarningEnabled) Debug.LogWarning(Format(tag, message));
+#endif
         }
 
         public static void Error(string tag, string message)

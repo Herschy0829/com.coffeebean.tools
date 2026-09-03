@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.6.0] - 2026-09-03
+
+### Added
+- **`CGameBuild` 构建模式门面**（Beta/Release，见 docs/design-build-modes.md）：
+  `IsEditor` / `IsDevelopmentBuild` / `HasDevTools`（COFFEEBEAN_DEV_TOOLS）/ `HasLogging`
+  （Editor 恒 true，Beta 包 true，Release 包 false）/ `DevOnly(action)`（Release no-op）
+
+### Changed
+- **`CLog.Info/Warn` 按构建模式编译剥离**：方法体改为 `#if UNITY_EDITOR || COFFEEBEAN_LOG`——
+  Editor 下（无论 Beta/Release 模式）恒有日志；Beta 包（定义 COFFEEBEAN_LOG）有日志；
+  Release 包方法体为空（日志剥离）。`Error` 无条件保留。
+  ⚠️ 若在 Release 语义下构建且未定义 `COFFEEBEAN_LOG`，Info/Warn 不再输出（预期行为）；
+  编辑器/开发构建不受影响（UNITY_EDITOR 分支）。
+
 ## [0.5.0] - 2025-xx-xx
 
 ### Changed
