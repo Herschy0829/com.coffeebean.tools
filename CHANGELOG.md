@@ -1,5 +1,68 @@
 # Changelog
 
+## [0.9.0] - 2026-09-17
+
+### Added
+- **通用 Loading 框**：`CLoading`（门面）+ `UILoading`（视图）+ 预制体/材质/着色器，
+  零配置即可用（预制体放在包内 `Runtime/Resources/CoffeeBean/LoadingCanvas.prefab`）。
+
+  ```csharp
+  CLoading.Show();
+  CLoading.Hide();
+
+  // 推荐：using 作用域，异常/提前 return 也会自动收起
+  using (CLoading.Scope("加载中..."))
+  {
+      await LoadSomething();
+  }
+  ```
+
+  - **引用计数**：嵌套 / 并发的 Show 会累加，只有计数归零才真正隐藏，
+    避免"后一个操作先 Hide 把前一个的遮罩关掉"。
+  - **线程安全**：加载常发生在后台线程，非主线程调用会经 `MainThreadDispatcher` 投递到主线程。
+    启动期用 `[RuntimeInitializeOnLoadMethod]` 把调度器准备好 ——
+    否则 `IsMainThread` 在调度器初始化前恒为 false，**主线程调用也会被无谓地延后一帧**。
+  - **预制体来源可替换**：显式 `Prefab` → `PrefabProvider`（可接 Addressables）→ 包内 Resources。
+  - 进度 / 文字为**可选绑定**：预制体没绑就空转。
+    （框架不预置文字节点，避免强依赖某个字体资源；需要就自己在预制体里放一个再拖进去。）
+
+### Fixed（相对你给的初版）
+- **自动隐藏的游离定时器**：初版是 `await Task.Delay(45s); Hide();` ——
+  期间再次 `Show()` 会被**上一次的定时器提前关掉**。现在改用协程，每次 Show 重置计时、Hide 取消计时。
+- **切场景丢遮罩**：初版没有 `DontDestroyOnLoad`，遮罩会随场景销毁（并且单例变 fake-null）。
+- **遮罩层级反了**：初版 `SetAsFirstSibling()` 把遮罩塞到**最底层**，会被其它 UI 盖住；
+  现在置顶并把 Canvas `sortingOrder` 拉到 30000（压过常规 UI）。
+- **资源路径不对**：初版 `Resources.Load("Loading/LoadingCanvas")` 与实际位置不符，失败还会 NRE。
+  现在路径与包内布局一致，且拿不到预制体时只报一次明确错误、不崩。
+- **`async void Show()`**：异常会被吞掉；已改为同步 + 协程，不再用 async void。
+- **死字段**：初版 `uiLoading` 序列化字段从未被使用，已换成真正用到的
+  `spinner` / `canvasGroup` / `progressFill` / `progressText`。
+- **非播放模式下的淡入淡出**：淡入淡出依赖帧推进，Editor 工具 / EditMode 下没有帧，
+  必须退化成立即显隐 —— 否则 Hide 之后对象永远停在"还可见"（这条是测试抓出来的）。
+
+### Changed
+- 着色器 `Custom/Loading` → **`CoffeeBean/Loading`**（无人按名字引用，已核实）：
+  - 去掉从未被采样的 `_MainTex`（死属性）
+  - 去掉 `#define PI`（避免与 `UnityCG.cginc` 的宏重定义打架）
+  - 圆点边缘改为 `smoothstep` 抗锯齿（初版是硬边 `if`，有锯齿且产生分支）
+  - 点数 / 尺寸 / 柔边 / 半径 / 速度全部参数化（初版是 `7→2`、`0.01`、`0.5` 这些魔法数字）
+  - 叠加改为按 alpha 覆盖（初版 `+=` 累加会让圆点重叠处过曝发白）
+  - 补上 UGUI 的 `Stencil` / `ColorMask`，使其在 `Mask` 下也能正确裁剪
+  - **`_Color` / `_Speed` / `_Radius` 属性名保持不变，已调好的材质无需改动**
+- 预制体：补齐缺失的两级目录 `.meta`；根节点 `m_LocalScale` 由 `(0,0,0)` 改回 `(1,1,1)`；
+  给根节点加 `CanvasGroup`（淡入淡出用）；指示器 `m_RaycastTarget` 改为 0（遮挡交给 Shadow 层）。
+- `package.json` 声明 `com.unity.ugui` 依赖（loading 用到 UGUI）；
+  描述与 keywords 补上 loading。
+
+### Tests
+- 新增 `CLoadingTests`（27 个用例）：引用计数（嵌套 / 超量 Hide / 强制 HideAll）、
+  实例复用与销毁后重建、进度与文字的截断和记忆、`Scope` 幂等与嵌套、
+  预制体来源优先级（显式 > Provider > Resources）、Provider 抛异常时回退、
+  缺预制体时不崩且状态正确、以及**资产完整性回归锁**：
+  直接加载包内预制体，断言脚本引用与 spinner / CanvasGroup 绑定、Canvas 排序值 ——
+  手工把预制体 YAML 改坏会立刻红。
+- 工具模块 **170/170**、全量 EditMode **598/598 通过**。
+
 ## [0.8.0] - 2026-09-17
 
 ### Added
