@@ -29,9 +29,13 @@ namespace CoffeeBean
     ///   <c>SKStoreReviewController</c> 的封装）；iOS 14+ 需要 App 有活跃窗口。
     /// · **Android**：Google Play In-App Review —— 通过 JNI 调用
     ///   <c>com.google.android.play.core.review.ReviewManagerFactory</c>。
-    ///   ⚠️ 该依赖（<c>com.google.android.play:review</c>）**必须由消费工程在自己的 Gradle 依赖里加**，
-    ///   框架不代为分发 Google 的二进制。没有它时返回
-    ///   <see cref="CAppReviewResult.Unavailable"/> 并给出可操作的告警，而不是静默失败。
+    ///   所需 Gradle 依赖 <c>com.google.android.play:review</c> **由框架自动写入**，无需手改 gradle：
+    ///   一旦本接口被调用过（或工程源码里出现 <c>CAppReview</c>），打包 Android 时
+    ///   <see cref="CAndroidGradleRequirements"/> 会把该依赖登记为必需项，
+    ///   再由 **build 模块**（装了的话）或 **tools 自己的 Editor 兜底回调** 注入到
+    ///   <c>unityLibrary/build.gradle</c>。框架不代为分发 Google 的二进制，只写一行 Maven 坐标。
+    ///   万一依赖仍缺失，接口返回 <see cref="CAppReviewResult.Unavailable"/> 并给出可操作告警，
+    ///   而不是静默失败。
     /// · **编辑器 / 其它平台**：返回 <see cref="CAppReviewResult.NotSupported"/>。
     ///
     /// **重要：系统可能不弹窗**。两家平台都对弹窗有硬性配额（Play 有周期配额；iOS 每个 App
@@ -111,6 +115,11 @@ namespace CoffeeBean
         /// <returns>本次请求的即时结果；Android 成功发起时返回 <see cref="CAppReviewResult.Requested"/>。</returns>
         public static CAppReviewResult Request(Action<CAppReviewResult> onCompleted = null)
         {
+            // 只要被调用过就留下使用痕迹：Android 打包时需要据此自动写入 Play In-App Review 的
+            // Gradle 依赖（见 CAndroidGradleRequirements）。放在最前面，是为了让"编辑器里调用"
+            // "冷却期调用"这些不真正发起请求的情况也算数 —— 它们同样证明项目用到了本接口。
+            CAndroidGradleRequirements.MarkInAppReviewUsed();
+
             if (IsOnCooldown)
             {
                 CLog.Info(Tag, $"处于冷却期（{CooldownDays} 天），跳过本次评价请求。");
@@ -171,6 +180,15 @@ namespace CoffeeBean
             }
         }
 
+        /// <summary>
+        /// 显式声明「本项目用到了应用内评价」。
+        ///
+        /// 正常调用 <see cref="Request"/> 会自动记录，**通常不需要手动调用**；
+        /// 只有调用点位于源码扫描范围之外的程序集（例如你自建的包）时才需要补一次，
+        /// 以确保打包 Android 时会自动写入 Play In-App Review 的 Gradle 依赖。
+        /// </summary>
+        public static void MarkUsed() => CAndroidGradleRequirements.MarkInAppReviewUsed();
+
         /// <summary>清空冷却记录，让下一次 <see cref="Request"/> 立刻生效（调试用）。</summary>
         public static void ResetCooldown()
         {
@@ -221,7 +239,9 @@ namespace CoffeeBean
                 {
                     CLog.Warn(Tag,
                         "未检测到 Google Play Core 的 review 依赖，无法弹出应用内评价。" +
-                        "请在工程的 Gradle 依赖里加入 com.google.android.play:review（或 review-ktx）后重新出包；" +
+                        "框架本应在打包 Android 时自动往 unityLibrary/build.gradle 注入 " +
+                        CAndroidGradleRequirements.PlayInAppReviewArtifact + "；" +
+                        "若你用了自定义 Gradle 模板、或自行导出工程后再手动构建，请自行补上这一行。" +
                         "需要确定的评价入口请改用 CAppReview.OpenStorePage()。");
                     onCompleted?.Invoke(CAppReviewResult.Unavailable);
                     return CAppReviewResult.Unavailable;

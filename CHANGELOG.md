@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.8.0] - 2026-09-17
+
+### Added
+- **Android Gradle 依赖自动写入**：应用内评价需要的 `com.google.android.play:review` 不再要手工改 gradle。
+  - `CAndroidGradleRequirements`：**框架级必需依赖登记表**。模块只登记「需要什么」，
+    「谁来写」由环境决定 —— 装了 build 模块就交给它，没装则由 tools 自己兜底。
+  - `CAndroidGradleInjector`：tools 自带的幂等注入器（往 `dependencies { }` 插
+    `implementation '...'`）。与 build 的 `CGradleFile` 不同，它**不抛异常**而是返回
+    `false + error` —— 兜底路径不该因为写不进一个文件就中断整个打包。
+  - 新增 Editor 程序集 `CoffeeBean.Tools.Editor` + `CAndroidGradleDependencyFallback`：
+    实现 `IPostGenerateGradleAndroidProject`，**仅在 build 模块不在场时**注入。
+
+- **「项目有没有用到」的判定**（`CAndroidGradleRequirements.ResolveForBuild()`），三条来源相加：
+  1. **运行期痕迹**：`CAppReview.Request()` 一被调用就记录（持久化到 PlayerPrefs ——
+     退出 Play 模式会重载域、静态标记会丢）。放在 `Request` 最前面，所以「编辑器里调用」
+     「冷却期调用」这些不真正发起请求的情况同样算数。
+  2. **源码扫描**：工程的 `Assets/**/*.cs` 里出现 `CAppReview` 标识。这条是给
+     **CI / 新克隆的机器**兜底的 —— 那里从没跑过游戏，只有代码。
+     扫描是启发式的（注释里提到也会命中），但误判的代价只是多一个未使用的依赖，
+     比漏依赖导致真机功能静默失效小得多；可用 `EnableSourceScan = false` 关掉。
+  3. **显式登记**：`CAppReview.MarkUsed()` 或 `CAndroidGradleRequirements.Add(...)`。
+     调用点在被扫描范围之外的程序集（如自建包）时补一次即可。
+
+### Changed
+- `CAppReview` 的 Android 依赖告警文案更新：现在它表示「自动注入没生效」
+  （自定义 Gradle 模板、或导出后手动构建），而不再是「你没手加依赖」。
+
 ## [0.7.0] - 2026-09-17
 
 ### Added
