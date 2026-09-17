@@ -221,6 +221,16 @@ namespace CoffeeBean.EditorTools
         }
 
         // ==================== 菜单 ====================
+        //
+        // 同一套逻辑还有第二个入口：CoffeeBean Hub 窗口（Window > CoffeeBean）里的
+        // 「第三方依赖」内嵌面板 —— 见 CThirdPartyIntegrationPanel。两个入口都调
+        // ToggleWithConfirmation / SetIntegrated，不存在两份实现。
+
+        /// <summary>是否有一次变更正在飞行中（UI 据此置灰控件）。</summary>
+        public static bool IsBusy
+        {
+            get { return _busy; }
+        }
 
         private const string ToggleUniRxMenu = MenuRoot + "集成 UniRx（Git）";
         private const string ToggleUniTaskMenu = MenuRoot + "集成 UniTask（Git）";
@@ -229,7 +239,7 @@ namespace CoffeeBean.EditorTools
         [MenuItem(ToggleUniRxMenu, false, 310)]
         private static void ToggleUniRx()
         {
-            Toggle(CThirdPartyCatalog.UniRx);
+            ToggleWithConfirmation(CThirdPartyCatalog.UniRx);
         }
 
         [MenuItem(ToggleUniRxMenu, true, 310)]
@@ -242,7 +252,7 @@ namespace CoffeeBean.EditorTools
         [MenuItem(ToggleUniTaskMenu, false, 311)]
         private static void ToggleUniTask()
         {
-            Toggle(CThirdPartyCatalog.UniTask);
+            ToggleWithConfirmation(CThirdPartyCatalog.UniTask);
         }
 
         [MenuItem(ToggleUniTaskMenu, true, 311)]
@@ -283,7 +293,17 @@ namespace CoffeeBean.EditorTools
             Debug.Log(sb.ToString());
         }
 
-        private static void Toggle(CThirdPartyPackage package)
+        /// <summary>
+        /// 带确认框的切换（菜单项与 Hub 面板共用的唯一入口）：
+        /// · 已由本框架从 Git 集成 → 确认后移除；
+        /// · 工程里没有 → 直接装上（无需确认）；
+        /// · 已由别的来源提供 → 确认后替换为框架锁定的 Git 集成。
+        /// </summary>
+        /// <param name="onCompleted">
+        /// 实际提交了 UPM 请求时，请求结束后的回调（成功/失败都调）——
+        /// Hub 面板拿它来刷新自己。取消确认框时不会调用。
+        /// </param>
+        public static void ToggleWithConfirmation(CThirdPartyPackage package, Action<bool, string> onCompleted = null)
         {
             CThirdPartySource source = GetSource(package);
             string value = ReadManifestEntry(package.Id);
@@ -297,7 +317,7 @@ namespace CoffeeBean.EditorTools
                         "确定从工程移除？工程里引用它的代码会立刻编译失败（包本身不会被删除，随时可以再勾回来）。",
                         "移除", "取消"))
                 {
-                    SetIntegrated(package, false);
+                    SetIntegrated(package, false, onCompleted);
                 }
                 return;
             }
@@ -305,7 +325,7 @@ namespace CoffeeBean.EditorTools
             if (source == CThirdPartySource.None)
             {
                 // 工程里没有 → 勾上就是装进来，没什么可确认的
-                SetIntegrated(package, true);
+                SetIntegrated(package, true, onCompleted);
                 return;
             }
 
@@ -318,7 +338,7 @@ namespace CoffeeBean.EditorTools
                     "（原文件/原包不会被删除，只是不再被工程引用）",
                     "替换为 Git 集成", "取消"))
             {
-                SetIntegrated(package, true);
+                SetIntegrated(package, true, onCompleted);
             }
         }
 

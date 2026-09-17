@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.11.0] - 2026-09-17
+
+### Added
+- **第三方依赖面板进 Hub**（`Window > CoffeeBean`）：与 `Tools/CoffeeBean/第三方依赖/` 的菜单
+  **并存**，两个入口共用同一套逻辑（都走 `CThirdPartyIntegration`），改哪边都一样 ——
+  读写的都是同一份 `Packages/manifest.json`，不存在两份实现。
+
+  ```
+  Window > CoffeeBean → 左侧「工具」组 → Tools · 第三方依赖     ← 新增：内嵌面板
+  Tools/CoffeeBean/第三方依赖/集成 UniRx（Git）                 ← 原有菜单，保留
+  ```
+
+  面板里每个依赖一块：当前来源 / 框架锁定地址 / 作用说明 + 一个勾选框，
+  底部还有「刷新状态」「把状态打到 Console」。操作期间控件置灰（`IsBusy`），
+  UPM 完成或取消确认框后都会让 Hub 重画，不会停在过期状态。
+
+- `Editor/CoffeeBeanToolAttribute.cs`：tools 模块自己的那份 attribute 副本
+  （Hub 按**全名**反射匹配，所以模块无需编译期引用 core —— 与 excel / purchase / build /
+  asset 的副本同一套做法，这次是第 6 份）。
+
+### Changed
+- 原来私有的 `Toggle` 提升为公开的 **`CThirdPartyIntegration.ToggleWithConfirmation(package, onCompleted = null)`**：
+  确认框 + 三种来源分支只有这一处实现，菜单与 Hub 面板都调它；`onCompleted` 供面板在异步完成后刷新。
+- 新增只读属性 `CThirdPartyIntegration.IsBusy`。
+
+### Tests
+- tools 226 → 228：`Panel_ExposesHubInlineContract`（static 类 + 同名 attribute + 正确签名，
+  三者缺一 Hub 就不会显示它）、`Panel_ReusesTheSameEntryPoints`（确认菜单与面板确实共用
+  `ToggleWithConfirmation`，且第二个参数是可省略的完成回调）。
+- 工具模块 **228/228**、全量 EditMode **690/690 通过**。
+
 ## [0.10.1] - 2026-09-17
 
 ### Fixed

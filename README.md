@@ -57,7 +57,7 @@ Editor/
 ```json
 {
   "dependencies": {
-    "com.coffeebean.tools": "https://github.com/Herschy0829/com.coffeebean.tools.git#v0.10.1"
+    "com.coffeebean.tools": "https://github.com/Herschy0829/com.coffeebean.tools.git#v0.11.0"
   }
 }
 ```
@@ -104,13 +104,17 @@ string countdown = CTime.FormatClock(90);   // "01:30"
 ## 可选的第三方依赖（一键集成）
 
 UniRx / UniTask 是**可选**的（框架自身不依赖），但工程里几乎总会用到。手工往
-`Packages/manifest.json` 里贴 git 地址很容易写错，也容易漏掉 `?path=` 子目录，所以做成菜单：
+`Packages/manifest.json` 里贴 git 地址很容易写错，也容易漏掉 `?path=` 子目录，所以做成两个入口：
 
 ```
-Tools/CoffeeBean/第三方依赖/集成 UniRx（Git）          ← 勾选 = 工程已集成
+Window > CoffeeBean → 左侧「工具」组 → Tools · 第三方依赖     ← Hub 内嵌面板（勾选式）
+Tools/CoffeeBean/第三方依赖/集成 UniRx（Git）                 ← 菜单（同前，保留）
 Tools/CoffeeBean/第三方依赖/集成 UniTask（Git）
-Tools/CoffeeBean/第三方依赖/查看第三方依赖状态         ← 打印来源 / 修订 / 用途
+Tools/CoffeeBean/第三方依赖/查看第三方依赖状态
 ```
+
+两个入口走的是**同一套逻辑**（`CThirdPartyIntegration` / `CThirdPartyCatalog`），
+改哪边都一样 —— 它们读写的都是同一份 `Packages/manifest.json`，不存在两份实现。
 
 - **勾选 = 工程里的这个包就是本框架从 Git 集成的那个地址**（不是"工程里有没有这个包"）。
   所以如果你的 UniRx 是 `file:` 本地路径或别的来源，菜单会显示**未勾选**，

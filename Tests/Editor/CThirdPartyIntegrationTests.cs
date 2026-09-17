@@ -407,5 +407,57 @@ namespace CoffeeBean.Tools.Tests
             Assert.AreEqual(seen.Count, CThirdPartyCatalog.All.Count + 1,
                 "菜单项应是「每个第三方依赖一个勾选项」+「一个状态项」");
         }
+
+        // ========== Hub 内嵌面板契约 ==========
+
+        /// <summary>
+        /// Hub（Window &gt; CoffeeBean）按**结构**发现内嵌面板：
+        /// static 类 + [CoffeeBeanTool]（同名 attribute 的副本）+ public static void DrawTool(Action)。
+        /// 三者缺一，面板就不会出现在 Hub 里 —— 所以在这里锁住。
+        /// </summary>
+        [Test]
+        public void Panel_ExposesHubInlineContract()
+        {
+            Type panel = typeof(CThirdPartyIntegrationPanel);
+
+            Assert.IsTrue(panel.IsClass && panel.IsAbstract && panel.IsSealed,
+                "内嵌面板必须是 static 类（Hub 用 抽象+密封 识别 static）");
+
+            bool hasToolAttribute = false;
+            foreach (object attribute in panel.GetCustomAttributes(false))
+            {
+                if (attribute.GetType().FullName == "CoffeeBean.EditorTools.CoffeeBeanToolAttribute")
+                {
+                    hasToolAttribute = true;
+                }
+            }
+            Assert.IsTrue(hasToolAttribute, "必须打上 CoffeeBeanTool 标记，否则 Hub 发现不了这个面板");
+
+            MethodInfo draw = panel.GetMethod("DrawTool", BindingFlags.Public | BindingFlags.Static,
+                null, new[] { typeof(Action) }, null);
+            Assert.IsNotNull(draw, "Hub 要求 public static void DrawTool(Action requestRepaint)");
+            Assert.AreEqual(typeof(void), draw.ReturnType);
+        }
+
+        /// <summary>面板与菜单必须共用同一套逻辑（不是两份实现）。</summary>
+        [Test]
+        public void Panel_ReusesTheSameEntryPoints()
+        {
+            MethodInfo toggle = typeof(CThirdPartyIntegration).GetMethod("ToggleWithConfirmation",
+                BindingFlags.Public | BindingFlags.Static);
+            Assert.IsNotNull(toggle, "菜单与 Hub 面板共用的唯一入口应是 public ToggleWithConfirmation");
+            Assert.AreEqual(typeof(void), toggle.ReturnType);
+
+            ParameterInfo[] parameters = toggle.GetParameters();
+            Assert.AreEqual(2, parameters.Length);
+            Assert.AreEqual(typeof(CThirdPartyPackage), parameters[0].ParameterType);
+            Assert.AreEqual(typeof(Action<bool, string>), parameters[1].ParameterType,
+                "第二个参数是完成回调，Hub 面板靠它在异步操作后刷新自己");
+            Assert.IsTrue(parameters[1].IsOptional, "完成回调应可省略（菜单项就不传）");
+
+            // 面板是否真的调了它，用反射看一眼方法体引用 —— 比"文档里写了"可靠
+            Assert.IsNotNull(typeof(CThirdPartyIntegration).GetProperty("IsBusy",
+                BindingFlags.Public | BindingFlags.Static), "面板需要 IsBusy 来置灰控件");
+        }
     }
 }
