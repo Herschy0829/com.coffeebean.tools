@@ -1,6 +1,6 @@
 {
   "name": "com.coffeebean.tools",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "displayName": "CoffeeBean Tools",
   "description": "Standalone utility module for the CoffeeBean framework: thread-safe singleton, MonoSingleton, Unity main-thread dispatcher, thread-pool runner, native in-app review (iOS StoreKit / Google Play In-App Review), native device region/language, a drop-in general-purpose loading overlay (ref-counted, thread-safe, auto-hide failsafe), and one-click Git integration for optional third-party libraries (UniRx / UniTask). No dependency on other CoffeeBean modules.",
   "unity": "6000.0",

@@ -57,7 +57,7 @@ Editor/
 ```json
 {
   "dependencies": {
-    "com.coffeebean.tools": "https://github.com/Herschy0829/com.coffeebean.tools.git#v0.10.0"
+    "com.coffeebean.tools": "https://github.com/Herschy0829/com.coffeebean.tools.git#v0.10.1"
   }
 }
 ```
@@ -112,6 +112,11 @@ Tools/CoffeeBean/第三方依赖/集成 UniTask（Git）
 Tools/CoffeeBean/第三方依赖/查看第三方依赖状态         ← 打印来源 / 修订 / 用途
 ```
 
+- **勾选 = 工程里的这个包就是本框架从 Git 集成的那个地址**（不是"工程里有没有这个包"）。
+  所以如果你的 UniRx 是 `file:` 本地路径或别的来源，菜单会显示**未勾选**，
+  点它就是"换成框架锁定的 Git 集成"（先弹确认框告诉你会被替换成什么）。
+  之所以这么定：菜单标题写的是「集成 UniRx（Git）」，用"有就算勾上"的话，
+  本地路径提供的 UniRx 会显示成已勾选，点一下反而变成"移除" —— 与意图正好相反。
 - 勾选 = `Client.Add("<git 地址>#<锁定修订>")`，取消 = `Client.Remove(包名)` ——
   与在 Package Manager 里手动操作完全等价，只改 manifest 的 `dependencies`。
 - **修订锁定**，不跟默认分支。UniRx 锁的是 commit（上游最后的 tag `7.1.0` 早于

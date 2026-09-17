@@ -153,6 +153,34 @@ namespace CoffeeBean.Tools.Tests
             Assert.AreEqual(CThirdPartySource.None, CThirdPartyIntegration.GetSource(null));
         }
 
+        /// <summary>
+        /// 菜单勾选状态必须问的是"**从 Git 集成**了吗"，而不是"工程里有没有这个包"。
+        ///
+        /// 后者会出一个很难看的错：由 <c>file:</c> 本地路径提供的 UniRx 会显示成已勾选，
+        /// 用户点一下（本意是"换成 Git 集成"）反而得到"移除"的确认框 —— 与菜单标题
+        /// 「集成 UniRx（Git）」的含义正好相反。
+        /// </summary>
+        [Test]
+        public void IsIntegratedFromGit_TracksGitSourceNotMerePresence()
+        {
+            foreach (CThirdPartyPackage package in CThirdPartyCatalog.All)
+            {
+                Assert.AreEqual(CThirdPartyIntegration.GetSource(package) == CThirdPartySource.ManagedGit,
+                    CThirdPartyIntegration.IsIntegratedFromGit(package),
+                    $"{package.Id} 的勾选状态必须与来源判定一致");
+            }
+
+            // 真实工程里一定在场的 tools 包：无论它是 file: 还是别的 git 地址，
+            // 都不等于本框架锁定的那两个第三方地址 → 绝不能算"已从 Git 集成"
+            var presentButForeign = new CThirdPartyPackage(
+                "com.coffeebean.tools", "Tools", "https://example.invalid/x.git", "1.0.0", "1.0.0", "探针");
+
+            Assert.IsTrue(CThirdPartyIntegration.IsIntegrated(presentButForeign.Id), "前置条件：tools 在工程里");
+            Assert.IsFalse(CThirdPartyIntegration.IsIntegratedFromGit(presentButForeign),
+                "在工程里 ≠ 由本框架从 Git 集成");
+            Assert.IsFalse(CThirdPartyIntegration.IsIntegratedFromGit(null));
+        }
+
         // ========== 只读路径（不碰 UPM） ==========
 
         [Test]

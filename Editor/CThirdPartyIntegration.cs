@@ -17,7 +17,7 @@ namespace CoffeeBean.EditorTools
     /// 手工往 <c>manifest.json</c> 里贴 git 地址既容易写错、又容易忘了 <c>?path=</c> 子目录。
     /// tools 是零依赖的通用工具模块，放这里不会给任何人加依赖；没用到的工程直接忽略菜单即可。
     ///
-    /// 菜单（<b>勾选 = 工程已集成该包</b>）：
+    /// 菜单（<b>勾选 = 工程里的这个包就是本框架从 Git 集成的那个地址</b>）：
     /// <code>
     /// Tools/CoffeeBean/第三方依赖/集成 UniRx（Git）
     /// Tools/CoffeeBean/第三方依赖/集成 UniTask（Git）
@@ -25,10 +25,14 @@ namespace CoffeeBean.EditorTools
     /// </code>
     ///
     /// 语义刻意对齐 UPM 本身，不做任何"魔法"：
-    /// · 勾选 → <c>Client.Add("&lt;git 地址&gt;#&lt;锁定 tag&gt;")</c>，写进 manifest 的 dependencies；
-    /// · 取消 → <c>Client.Remove(包名)</c>，把这一项从 manifest 去掉；
-    /// · 工程已由**别的来源**提供同一个包（<c>file:</c> 本地路径 / registry 版本）时，
-    ///   UPM 的 Add 会**替换**那一项 —— 所以这里先弹确认框，把"将被替换成什么"讲清楚。
+    /// · 勾选（工程里没有 / 由别的来源提供）→ <c>Client.Add("&lt;git 地址&gt;#&lt;锁定修订&gt;")</c>，
+    ///   写进 manifest 的 dependencies；
+    /// · 取消（已由本框架从 Git 集成）→ <c>Client.Remove(包名)</c>，把这一项从 manifest 去掉；
+    /// · 工程已由**别的来源**提供同一个包（<c>file:</c> 本地路径 / registry 版本 / 别的 git 地址）时，
+    ///   菜单**不勾选**（因为"从 Git 集成"这句话还不成立），点击会先弹确认框，
+    ///   把"这一项将被替换成什么"讲清楚 —— UPM 的 Add 本身就是替换语义，不做静默替换。
+    ///   （这一点是实测出来的：一开始把勾选状态定义成"工程里有没有这个包"，
+    ///   结果由 <c>file:</c> 提供的 UniRx 显示成已勾选，点一下反而变成"移除"。）
     ///
     /// 变更只用**一次** <c>Client.AddAndRemove</c>（理由见 core 的 ModuleInstaller）：
     /// 逐个发会触发多次依赖图求解与域重载，慢且容易把完成回调链断掉。
@@ -110,10 +114,22 @@ namespace CoffeeBean.EditorTools
             return CThirdPartyCatalog.Classify(package, ReadManifestEntry(package == null ? null : package.Id));
         }
 
-        /// <summary>工程是否**已经**集成了这个包（任何来源都算）。菜单勾选状态用它。</summary>
+        /// <summary>工程是否**已经**集成了这个包（任何来源都算）。</summary>
         public static bool IsIntegrated(string packageId)
         {
             return !string.IsNullOrEmpty(ReadManifestEntry(packageId));
+        }
+
+        /// <summary>
+        /// 工程里这个包是不是**由本框架从 Git 集成的**（即 manifest 里的取值就是锁定地址）。
+        /// **菜单的勾选状态用它**，而不是"工程里有没有这个包"：
+        /// 菜单标题写的是「集成 UniRx（Git）」，那么"勾上"就只能意味着"这个 Git 集成生效了"。
+        /// 若用"有就算勾上"，一个由 <c>file:</c> 本地路径提供的 UniRx 会显示成已勾选，
+        /// 点一下反而变成"移除" —— 与用户点这个菜单的意图（换成 Git 集成）正好相反。
+        /// </summary>
+        public static bool IsIntegratedFromGit(CThirdPartyPackage package)
+        {
+            return GetSource(package) == CThirdPartySource.ManagedGit;
         }
 
         // ==================== 变更 ====================
@@ -219,7 +235,7 @@ namespace CoffeeBean.EditorTools
         [MenuItem(ToggleUniRxMenu, true, 310)]
         private static bool ValidateToggleUniRx()
         {
-            Menu.SetChecked(ToggleUniRxMenu, IsIntegrated(CThirdPartyCatalog.UniRx.Id));
+            Menu.SetChecked(ToggleUniRxMenu, IsIntegratedFromGit(CThirdPartyCatalog.UniRx));
             return !_busy;
         }
 
@@ -232,7 +248,7 @@ namespace CoffeeBean.EditorTools
         [MenuItem(ToggleUniTaskMenu, true, 311)]
         private static bool ValidateToggleUniTask()
         {
-            Menu.SetChecked(ToggleUniTaskMenu, IsIntegrated(CThirdPartyCatalog.UniTask.Id));
+            Menu.SetChecked(ToggleUniTaskMenu, IsIntegratedFromGit(CThirdPartyCatalog.UniTask));
             return !_busy;
         }
 
@@ -272,36 +288,37 @@ namespace CoffeeBean.EditorTools
             CThirdPartySource source = GetSource(package);
             string value = ReadManifestEntry(package.Id);
 
-            switch (source)
+            if (source == CThirdPartySource.ManagedGit)
             {
-                case CThirdPartySource.None:
-                    SetIntegrated(package, true);
-                    return;
+                // 已由本框架从 Git 集成 → 取消勾选 = 从工程移除（破坏性，先确认）
+                if (EditorUtility.DisplayDialog(
+                        $"移除 {package.DisplayName}",
+                        $"{package.DisplayName} 当前由 Git 提供：\n{package.Url}\n\n" +
+                        "确定从工程移除？工程里引用它的代码会立刻编译失败（包本身不会被删除，随时可以再勾回来）。",
+                        "移除", "取消"))
+                {
+                    SetIntegrated(package, false);
+                }
+                return;
+            }
 
-                case CThirdPartySource.ManagedGit:
-                    // 由框架写入的地址：取消勾选 = 从工程移除（破坏性，先确认）
-                    if (EditorUtility.DisplayDialog(
-                            $"移除 {package.DisplayName}",
-                            $"{package.DisplayName} 当前由 Git 提供：\n{package.Url}\n\n" +
-                            "确定从工程移除？工程里引用它的代码会立刻编译失败（包本身不会被删除，随时可以再勾回来）。",
-                            "移除", "取消"))
-                    {
-                        SetIntegrated(package, false);
-                    }
-                    return;
+            if (source == CThirdPartySource.None)
+            {
+                // 工程里没有 → 勾上就是装进来，没什么可确认的
+                SetIntegrated(package, true);
+                return;
+            }
 
-                default:
-                    // file: / registry / 其它 git 地址：UPM 的 Add 会替换掉这一项
-                    if (EditorUtility.DisplayDialog(
-                            $"改用 Git 集成 {package.DisplayName}",
-                            $"{package.DisplayName} 当前来源：{CThirdPartyCatalog.DescribeSource(package, value)}\n\n" +
-                            $"继续会把 manifest 里的这一项替换为框架锁定的地址：\n{package.Url}\n\n" +
-                            "（原文件/原包不会被删除，只是不再被工程引用）",
-                            "替换为 Git 集成", "取消"))
-                    {
-                        SetIntegrated(package, true);
-                    }
-                    return;
+            // 已由**别的来源**提供（file: 本地路径 / registry 版本 / 别的 git 地址）：
+            // 勾上 = 用框架锁定的地址**替换**这一项，所以先把"会被替换成什么"讲清楚。
+            if (EditorUtility.DisplayDialog(
+                    $"改用 Git 集成 {package.DisplayName}",
+                    $"{package.DisplayName} 当前来源：{CThirdPartyCatalog.DescribeSource(package, value)}\n\n" +
+                    $"继续会把 manifest 里的这一项替换为框架锁定的地址：\n{package.Url}\n\n" +
+                    "（原文件/原包不会被删除，只是不再被工程引用）",
+                    "替换为 Git 集成", "取消"))
+            {
+                SetIntegrated(package, true);
             }
         }
 
