@@ -1,5 +1,53 @@
 # Changelog
 
+## [0.10.0] - 2026-09-17
+
+### Added
+- **第三方依赖一键集成（UniRx / UniTask）**：菜单栏里勾选即从 Git 装进工程，取消勾选即移除。
+  框架自身不依赖这两个库（纯可选），但工程里几乎总会用到；手工往 `Packages/manifest.json`
+  里贴 git 地址既容易写错，又容易漏掉 `?path=` 子目录（仓库根往往没有 package.json）。
+
+  ```
+  Tools/CoffeeBean/第三方依赖/集成 UniRx（Git）          ← 勾选 = 工程已集成
+  Tools/CoffeeBean/第三方依赖/集成 UniTask（Git）
+  Tools/CoffeeBean/第三方依赖/查看第三方依赖状态         ← 打印来源 / tag / 用途
+  ```
+
+  - **修订锁定**：UniRx `7.1.0`、UniTask `2.5.11`，地址与修订作为常量写死在包内并有测试锁死
+    （不跟默认分支 —— 上游一次不兼容提交就能让所有新工程装不上）。
+    - **UniRx 这里锁的是 commit 而不是 tag**（`c244f9a`），因为上游最后一个 release tag
+      `7.1.0` **早于**给 `Assets/Plugins/UniRx/Scripts` 补 `package.json` 的提交（2020-04-16，
+      提交信息就叫 "Add package.json"）。用 `#7.1.0` 装机时 UPM 直接报
+      `Repository does not contain a package manifest` —— 这条是**实测**出来的，不是推测。
+      锁定的 commit 与 tag 7.1.0 相比**只多了 package.json 和它的 `.meta`**（源码逐字节一致），
+      而 `c244f9a..master` 之间只改过 README，所以它同时等价于上游最新代码。
+    - 因此 `CThirdPartyPackage` 把「版本号」与「修订」拆成两个字段：`Version` 只用于展示，
+      `Revision` 才是写进 `#` 后面的东西（菜单与日志里 commit 只显示前 7 位）。
+  - **来源识别**（`CThirdPartySource`）：manifest 里的取值分成 未集成 / 本框架的 Git 地址 /
+    其它 Git 地址 / `file:` 本地路径 / registry 版本 五类。工程已用**别的来源**提供同一个包时，
+    点击先弹确认框说清"这一项将被替换成什么"，绝不静默替换；取消勾选时也先确认。
+  - **不做静默魔法**：勾选 = `Client.Add("<git 地址>#<tag>")`，取消 = `Client.Remove(包名)`，
+    与在 Package Manager 里手动操作完全等价。所有行为只落在 manifest 的 `dependencies` 上。
+  - **一次 `Client.AddAndRemove`**：逐个发会触发多次依赖图求解与域重载（就是 core 里修过的
+    那个"一键安装卡死"）。变更期间两个勾选项自动置灰，避免并发提交 UPM 请求。
+  - **跨域重载不丢结果**：操作意图先写进 `SessionState`，重载后回读 manifest 校验并报告 ——
+    即使完成回调随旧域一起消失，也会给出"已生效"或明确的失败结论，不会出现"点了没反应"。
+  - 新增 Editor 程序集内的 `AssemblyInfo.cs`（`InternalsVisibleTo`），使意图编解码可被测试覆盖。
+
+### Tests
+- tools 测试 170 → 225（新增 55 个用例）：
+  - 地址拼接与清单完整性（两个依赖的 URL 逐字符锁死、必须带 `?path=`、必须锁修订、commit 与 tag 的区分）；
+  - 来源分类的每条分支与边界（大小写、首尾空白、只差一个字符的近似地址、两个库不互相误判）；
+  - manifest 解析（值里同时含 `:` `?` `#` `/`；`testables` 等其它段不混入；空对象 / 缺段 / null）；
+  - 只读安全路径（未知包、空包名、空操作必须**同步**返回且不占用"进行中"状态）；
+  - 跨域重载意图的编解码（含 URL 原样带回、`reported` 标记、各种畸形输入被拒、有效期判定）；
+  - 菜单结构（全部挂在同一个子菜单下、每个路径恰好一个 handler、每个勾选项恰好一个 validate）。
+- **端到端实测**（临时探针，跑完即删）：在 dev 工程里真的把 UniRx 从 Git 装上、校验
+  manifest 取值与来源判定、再移除、再校验 —— `PASS`。上面那条"tag 里没有 package.json"
+  就是这么发现的（第一次实测直接报 `Repository does not contain a package manifest`）；
+  也顺带发现"成功变更不一定触发域重载"，于是给遗留意图加了有效期。
+- 工具模块 **225/225**、全量 EditMode **677/677 通过**。
+
 ## [0.9.0] - 2026-09-17
 
 ### Added

@@ -2,7 +2,8 @@
   "name": "CoffeeBean.Tools.Tests",
   "rootNamespace": "CoffeeBean.Tools.Tests",
   "references": [
-    "CoffeeBean.Tools"
+    "CoffeeBean.Tools",
+    "CoffeeBean.Tools.Editor"
   ],
   "includePlatforms": [
     "Editor"

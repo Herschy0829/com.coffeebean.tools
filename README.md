@@ -1,4 +1,4 @@
-﻿# com.coffeebean.tools
+# com.coffeebean.tools
 
 CoffeeBean 工具模块（**独立模块**，不依赖任何 CoffeeBean 模块，其他模块可依赖它）。
 
@@ -43,7 +43,13 @@ Runtime/
 ├── Enum/          CEnum
 ├── Math/          CMath
 ├── IO/            CFile
+├── Platform/      CAppReview（原生应用内评价）/ CDeviceLocale（原生地区与语言）/ Android Gradle 依赖
+├── Loading/       CLoading + UILoading（通用 Loading 框）
 └── Bridge/        与 Core 的可选集成（安装 Core 时编译）
+
+Editor/
+├── CAndroidGradleDependencyFallback   没装 build 模块时的 Gradle 依赖兜底
+└── CThirdPartyIntegration             UniRx / UniTask 一键集成菜单
 ```
 
 ## 安装
@@ -51,7 +57,7 @@ Runtime/
 ```json
 {
   "dependencies": {
-    "com.coffeebean.tools": "https://github.com/Herschy0829/com.coffeebean.tools.git#v0.6.0"
+    "com.coffeebean.tools": "https://github.com/Herschy0829/com.coffeebean.tools.git#v0.10.0"
   }
 }
 ```
@@ -93,6 +99,36 @@ CGameObject.DestroyChildren(poolRoot, immediate: true);
 
 // 时间格式化
 string countdown = CTime.FormatClock(90);   // "01:30"
+```
+
+## 可选的第三方依赖（一键集成）
+
+UniRx / UniTask 是**可选**的（框架自身不依赖），但工程里几乎总会用到。手工往
+`Packages/manifest.json` 里贴 git 地址很容易写错，也容易漏掉 `?path=` 子目录，所以做成菜单：
+
+```
+Tools/CoffeeBean/第三方依赖/集成 UniRx（Git）          ← 勾选 = 工程已集成
+Tools/CoffeeBean/第三方依赖/集成 UniTask（Git）
+Tools/CoffeeBean/第三方依赖/查看第三方依赖状态         ← 打印来源 / 修订 / 用途
+```
+
+- 勾选 = `Client.Add("<git 地址>#<锁定修订>")`，取消 = `Client.Remove(包名)` ——
+  与在 Package Manager 里手动操作完全等价，只改 manifest 的 `dependencies`。
+- **修订锁定**，不跟默认分支。UniRx 锁的是 commit（上游最后的 tag `7.1.0` 早于
+  给该子目录补 `package.json` 的提交，用 tag 装机时 UPM 会报
+  `Repository does not contain a package manifest`）；UniTask 锁 `2.5.11`。
+- 工程已由**别的来源**提供同一个包（`file:` 本地路径 / registry 版本 / 其它 git 地址）时，
+  点击会先弹确认框说明"这一项将被替换成什么"，不会静默替换。
+- 变更期间两个勾选项置灰；一次成功的变更会重载域，重载后自动回读 manifest 校验并报告结果。
+
+不改菜单也可以直接调 API：
+
+```csharp
+using CoffeeBean.EditorTools;
+
+CThirdPartyIntegration.SetIntegrated(CThirdPartyCatalog.UniRx, true);   // 集成
+CThirdPartyIntegration.SetIntegrated(CThirdPartyCatalog.UniRx, false);  // 移除
+bool has = CThirdPartyIntegration.IsIntegrated("com.neuecc.unirx");
 ```
 
 ## 与 Core 集成
