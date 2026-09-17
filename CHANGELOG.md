@@ -1,5 +1,46 @@
 # Changelog
 
+## [0.7.0] - 2026-09-17
+
+### Added
+- **`CAppReview`：原生平台应用内评价（In-App Review）**
+  - iOS：`UnityEngine.iOS.Device.RequestStoreReview()`（Unity 对 `SKStoreReviewController` 的封装）
+  - Android：Google Play In-App Review —— JNI 调 `com.google.android.play.core.review.ReviewManagerFactory`，
+    经 `com.google.android.gms.tasks.OnCompleteListener` 代理拿 `ReviewInfo` 后 `launchReviewFlow`
+  - WebGL / 编辑器 / 桌面：返回 `NotSupported`（有明确日志，不静默）
+  - 结果用 `CAppReviewResult` 显式区分 **`Unavailable`（平台支持但环境不满足）** 与 `Failed`：
+    Android 未接入 Play Core 依赖时给出可操作告警（提示加 `com.google.android.play:review`），
+    而不是假装成功
+  - **冷却机制**：`CooldownDays`（默认 90 天，存 PlayerPrefs）+ `IsOnCooldown` / `LastRequestUtc` / `ResetCooldown()`。
+    两家平台都有弹窗配额且**都不会告知调用方是否真的弹了**，冷却可避免频繁请求被静默丢弃
+  - `OpenStorePage()` 确定性兜底：Android `market://details?id=` → `https://play.google.com/...`；
+    iOS 配置 `IosAppId` 后直达 `itms-apps://...?action=write-review`
+
+- **`CDeviceLocale`：设备地区 / 语言（原生平台）**
+  - `LanguageCode`（ISO 639-1，小写）、`CountryCode`（ISO 3166-1 alpha-2，大写）、
+    `LocaleIdentifier`（`zh_CN` 形式，与配置表 / `Resources` 语言目录命名对齐）、
+    `LanguageNameEnglish` / `CountryNameEnglish`、`UnityLanguage`、`IsRightToLeft`
+  - 取值来源：**Android** JNI 直读 `java.util.Locale.getDefault()`
+    （`getLanguage` / `getCountry` / `getDisplayLanguage(Locale.ENGLISH)` 等）；
+    **iOS 及其它平台**用 `CultureInfo.CurrentCulture` + `RegionInfo.CurrentRegion`——
+    Unity 启动时用系统区域设置（iOS 为 `NSLocale`）初始化它，即系统原生值；
+    **兜底**再用 `Application.systemLanguage` 映射
+  - 结果缓存 + `Refresh()`；另提供 `CDeviceLocaleSnapshot` 一次取齐（`CDeviceLocale.Current`）
+  - 注：Unity 另有 `UnityEngine.Android.AndroidLocale`，但它没有公开构造函数、拿不到实例，故未采用
+
+### Notes
+- **Android 应用内评价需要消费工程自己在 Gradle 依赖里加 `com.google.android.play:review`
+  （或 `review-ktx`）**。框架不代为分发 Google 的二进制；缺依赖时 `Request` 返回
+  `Unavailable` 并打印可操作告警。
+
+### Tests
+- 新增 `CAppReviewTests`（18 个用例）：冷却窗口/边界/开关、商店地址拼接（含包名为空不拼出残缺地址）、
+  编辑器下降级为 `NotSupported`、不支持平台不写冷却记录（否则真机首次请求会被误判为冷却）、
+  PlayerPrefs 往返、枚举数值稳定性
+- 新增 `CDeviceLocaleTests`（17 个用例）：语言/地区码归一化（`zh-Hans` → `zh`、大小写、空值）、
+  `SystemLanguage` → ISO 639-1 全枚举扫描防漂移、RTL 判定、快照自洽性与缓存稳定性
+- 工具模块 **111/111 通过**
+
 ## [0.6.0] - 2026-09-03
 
 ### Added

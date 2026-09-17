@@ -1,13 +1,13 @@
-﻿{
+{
   "name": "com.coffeebean.tools",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "displayName": "CoffeeBean Tools",
-  "description": "Standalone utility module for the CoffeeBean framework: thread-safe singleton, MonoSingleton, Unity main-thread dispatcher, thread-pool runner. No dependency on other CoffeeBean modules.",
+  "description": "Standalone utility module for the CoffeeBean framework: thread-safe singleton, MonoSingleton, Unity main-thread dispatcher, thread-pool runner, native in-app review (iOS StoreKit / Google Play In-App Review) and native device region/language. No dependency on other CoffeeBean modules.",
   "unity": "6000.0",
   "author": {
     "name": "Herschy0829"
   },
-  "keywords": ["coffeebean", "tools", "singleton", "thread", "main-thread"],
+  "keywords": ["coffeebean", "tools", "singleton", "thread", "main-thread", "review", "locale"],
   "dependencies": {},
   "testables": ["com.coffeebean.tools"],
   "samples": [
