@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.RegularExpressions;
 using CoffeeBean.EditorTools;
 using NUnit.Framework;
+using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 namespace CoffeeBean.Tools.Tests
 {
@@ -256,6 +259,33 @@ namespace CoffeeBean.Tools.Tests
         public void DescribeSource_DefaultBranchIsSpelledOut()
         {
             StringAssert.Contains("默认分支", CThirdPartyCatalog.DescribeSource(UniRx, UniRx.GitUrl));
+        }
+
+        // ========== 强制依赖：package.json 必须声明清单里的这两个包 ==========
+
+        /// <summary>
+        /// tools 把 UniRx / UniTask 声明成**硬依赖**（"强制依赖"）：装了 tools 的工程必然有它们。
+        ///
+        /// 声明的版本必须与清单里锁定的版本一致 —— 否则会出现"package.json 说 2.5.11、
+        /// 一键集成却装别的版本"这种自相矛盾。另外这两个包不在任何 registry 里，
+        /// 所以 core 的 registry 里 tools 条目也必须登记完整 UPM 地址（core 侧另有测试锁住）。
+        /// </summary>
+        [Test]
+        public void PackageJson_DeclaresCatalogEntriesAsHardDependencies()
+        {
+            PackageInfo info = PackageInfo.FindForAssembly(typeof(CThirdPartyCatalog).Assembly);
+            Assert.IsNotNull(info, "应能解析到 tools 包本身");
+            Assert.IsNotEmpty(info.resolvedPath);
+
+            string json = File.ReadAllText(Path.Combine(info.resolvedPath, "package.json"));
+
+            foreach (CThirdPartyPackage package in CThirdPartyCatalog.All)
+            {
+                Match m = Regex.Match(json, "\"" + Regex.Escape(package.Id) + "\"\\s*:\\s*\"([^\"]+)\"");
+                Assert.IsTrue(m.Success, $"tools 必须把 {package.Id} 声明为硬依赖（强制依赖），否则工程里不一定有它");
+                Assert.AreEqual(package.Version, m.Groups[1].Value,
+                    $"{package.Id} 在 package.json 里的版本必须与清单锁定的 {package.Version} 一致");
+            }
         }
     }
 }

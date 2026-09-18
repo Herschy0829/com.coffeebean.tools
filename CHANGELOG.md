@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.12.0] - 2026-09-17
+
+### Changed
+- **UniRx + UniTask 从"可选"变成"强制依赖"**：`package.json` 的 `dependencies` 里现在写死
+  `com.cysharp.unitask: 2.5.11` 与 `com.neuecc.unirx: 7.1.0` —— 装了 tools 的工程必然有它们
+  （tools 是绝大多数模块的依赖，等于整个框架统一了异步与响应式的地基）。
+
+  **注意：这两个包不在任何 registry 里，UPM 自己解析不到。** 所以 core 的 registry 里
+  tools 条目同时登记了 `externalDependencies`（完整 `?path=` UPM 地址 + 锁定修订）：
+  「一键安装 / 装依赖」会在**同一个 UPM 请求**里先把它们加进去，再解析 tools ——
+  顺序由 `ModuleDependencyResolver` 保证（第三方在前、目标模块最后）。
+
+  - 声明的版本与 `CThirdPartyCatalog` 里锁定的版本**必须一致**，已加测试锁住
+    （否则会出现"package.json 说 2.5.11、一键集成却装别的版本"这种自相矛盾）。
+  - `CThirdPartyCatalog` 里 UniRx 锁的是 commit `c244f9a`（上游 tag `7.1.0` 早于给该子目录
+    补 `package.json` 的提交，用 tag 装机会报 `Repository does not contain a package manifest`）——
+    这个结论没变：package.json 里的 `7.1.0` 是**包版本号**，锁定地址仍走 registry / 一键集成里那个 commit。
+
+### Notes
+- 「第三方依赖」一键集成菜单与 Hub 面板**保留**：强制依赖解决"工程里有没有"，
+  面板解决"来源是哪一份"（本地 `file:` / 别的 git 地址 → 换成框架锁定的 Git 集成）。
+  两者不冲突：依赖已满足时面板会显示"已由本地路径提供"，点一下才替换。
+
+### Tests
+- 新增 `PackageJson_DeclaresCatalogEntriesAsHardDependencies`：package.json 必须声明这两个包，
+  且版本与清单锁定的版本逐字相等。
+- 工具模块 **228 → 229**；全量 EditMode **690 → 699**（另 4 条新增在 asset 模块）。
+
 ## [0.11.0] - 2026-09-17
 
 ### Added
