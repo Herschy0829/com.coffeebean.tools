@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.13.0] - 2026-09-19
+
+### Removed (BREAKING：删掉"选项安装"这套入口)
+- **移除「第三方依赖一键集成」**：`CThirdPartyIntegration` / `CThirdPartyCatalog` /
+  `CThirdPartyIntegrationPanel` 三个文件（Hub 内嵌面板 + `Tools/CoffeeBean/第三方依赖/*` 菜单项）
+  与对应两个测试文件全部删除。
+
+  **为什么删**：UniRx / UniTask 在 0.12.0 已经是**硬依赖**（`package.json` 的 `dependencies`），
+  装 tools 的工程必然有它们、来源也由 Core 的 registry（`externalDependencies`）统一解析 ——
+  那套菜单/面板能做的事只剩"把同一份依赖换成另一个来源"，属于多余的第二条路径：
+  它要自己再维护一份地址清单（与 registry 漂移过一次，靠 Core 的反射测试盯着），
+  还要处理"勾选 ≠ 已装"的语义歧义（`file:` 本地路径提供的包会被显示成未勾选）。
+  现在第三方依赖只有 **registry 一个来源**，少一条路径也少一处漂移点。
+
+  **影响**：如果你脚本化调用过 `CThirdPartyIntegration.SetIntegrated(...)` /
+  `CThirdPartyCatalog.UniRx`，请改为直接改 `Packages/manifest.json`（或走 Core 的
+  「一键安装 / 装依赖」——它会自己把第三方依赖排在 UPM 请求最前面）。
+  工程里由别的来源（`file:` / registry / 别的 git 地址）提供同名包依旧可以，只要包名一致。
+
+### Changed
+- `package.json`：版本 → `0.13.0`；描述去掉"一键 Git 集成"，明确第三方依赖随模块一起装；
+  keywords 去掉 `third-party`。
+- `README.md`：把「可选的第三方依赖（一键集成）」整节换成「第三方依赖：固定依赖，不用自己装」
+  （来源 = registry、修订锁定、换来源只需改 manifest 一行）、安装片段版本号 → `v0.13.0`。
+
 ## [0.12.0] - 2026-09-17
 
 ### Changed

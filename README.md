@@ -48,8 +48,7 @@ Runtime/
 └── Bridge/        与 Core 的可选集成（安装 Core 时编译）
 
 Editor/
-├── CAndroidGradleDependencyFallback   没装 build 模块时的 Gradle 依赖兜底
-└── CThirdPartyIntegration             UniRx / UniTask 一键集成菜单
+└── CAndroidGradleDependencyFallback   没装 build 模块时的 Gradle 依赖兜底
 ```
 
 ## 安装
@@ -57,7 +56,7 @@ Editor/
 ```json
 {
   "dependencies": {
-    "com.coffeebean.tools": "https://github.com/Herschy0829/com.coffeebean.tools.git#v0.11.0"
+    "com.coffeebean.tools": "https://github.com/Herschy0829/com.coffeebean.tools.git#v0.13.0"
   }
 }
 ```
@@ -101,44 +100,25 @@ CGameObject.DestroyChildren(poolRoot, immediate: true);
 string countdown = CTime.FormatClock(90);   // "01:30"
 ```
 
-## 可选的第三方依赖（一键集成）
+## 第三方依赖：UniRx + UniTask 是固定依赖，不用自己装
 
-UniRx / UniTask 是**可选**的（框架自身不依赖），但工程里几乎总会用到。手工往
-`Packages/manifest.json` 里贴 git 地址很容易写错，也容易漏掉 `?path=` 子目录，所以做成两个入口：
+`package.json` 里写死了 `com.cysharp.unitask: 2.5.11` 与 `com.neuecc.unirx: 7.1.0` ——
+装了 tools 的工程必然有它们（tools 是绝大多数模块的依赖，等于整个框架统一了异步与响应式的地基）。
+这两个包不在任何 registry 里、UPM 自己解析不到，所以 Core 的 registry 给 tools / asset 条目登记了
+`externalDependencies`（完整 `?path=` UPM 地址 + 锁定修订）："一键安装 / 装依赖"会把它们排在
+**同一批 UPM 请求的最前面**，一次解析就全部满足。
 
-```
-Window > CoffeeBean → 左侧「工具」组 → Tools · 第三方依赖     ← Hub 内嵌面板（勾选式）
-Tools/CoffeeBean/第三方依赖/集成 UniRx（Git）                 ← 菜单（同前，保留）
-Tools/CoffeeBean/第三方依赖/集成 UniTask（Git）
-Tools/CoffeeBean/第三方依赖/查看第三方依赖状态
-```
-
-两个入口走的是**同一套逻辑**（`CThirdPartyIntegration` / `CThirdPartyCatalog`），
-改哪边都一样 —— 它们读写的都是同一份 `Packages/manifest.json`，不存在两份实现。
-
-- **勾选 = 工程里的这个包就是本框架从 Git 集成的那个地址**（不是"工程里有没有这个包"）。
-  所以如果你的 UniRx 是 `file:` 本地路径或别的来源，菜单会显示**未勾选**，
-  点它就是"换成框架锁定的 Git 集成"（先弹确认框告诉你会被替换成什么）。
-  之所以这么定：菜单标题写的是「集成 UniRx（Git）」，用"有就算勾上"的话，
-  本地路径提供的 UniRx 会显示成已勾选，点一下反而变成"移除" —— 与意图正好相反。
-- 勾选 = `Client.Add("<git 地址>#<锁定修订>")`，取消 = `Client.Remove(包名)` ——
-  与在 Package Manager 里手动操作完全等价，只改 manifest 的 `dependencies`。
-- **修订锁定**，不跟默认分支。UniRx 锁的是 commit（上游最后的 tag `7.1.0` 早于
-  给该子目录补 `package.json` 的提交，用 tag 装机时 UPM 会报
-  `Repository does not contain a package manifest`）；UniTask 锁 `2.5.11`。
-- 工程已由**别的来源**提供同一个包（`file:` 本地路径 / registry 版本 / 其它 git 地址）时，
-  点击会先弹确认框说明"这一项将被替换成什么"，不会静默替换。
-- 变更期间两个勾选项置灰；一次成功的变更会重载域，重载后自动回读 manifest 校验并报告结果。
-
-不改菜单也可以直接调 API：
-
-```csharp
-using CoffeeBean.EditorTools;
-
-CThirdPartyIntegration.SetIntegrated(CThirdPartyCatalog.UniRx, true);   // 集成
-CThirdPartyIntegration.SetIntegrated(CThirdPartyCatalog.UniRx, false);  // 移除
-bool has = CThirdPartyIntegration.IsIntegrated("com.neuecc.unirx");
-```
+- **不需要任何菜单或开关**：v0.13.0 起移除了原先的「第三方依赖一键集成」（Hub 内嵌面板 +
+  `Tools/CoffeeBean/第三方依赖/*` 菜单 + `CThirdPartyIntegration` / `CThirdPartyCatalog`）。
+  第三方依赖现在只有 registry 一个来源 —— 少一处"两份地址可能漂移"的维护点。
+- **修订锁定**（同一个依赖只能有一个来源）：UniTask 锁 tag `2.5.11`；UniRx 锁 commit `c244f9a…`
+  （上游最后的 tag `7.1.0` 早于给该子目录补 `package.json` 的提交，用 tag 装机时 UPM 会报
+  `Repository does not contain a package manifest`）。Core 侧有测试钉死这两个地址：
+  `BuiltInRegistry_ThirdPartyUrlsArePinnedAndConsistent`。
+- 工程里由**别的来源**（`file:` 本地路径 / registry 版本 / 别的 git 地址）提供同名包也可以，
+  只要**包名一致**（`com.cysharp.unitask` / `com.neuecc.unirx`）—— 各模块的 asmdef 是按
+  程序集名（`UniTask` / `UniRx`）引用的，不看来源。想换来源就直接改 `Packages/manifest.json`
+  里那一行，框架不会再覆盖它。
 
 ## 与 Core 集成
 

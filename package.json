@@ -1,13 +1,13 @@
 {
   "name": "com.coffeebean.tools",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "displayName": "CoffeeBean Tools",
-  "description": "Standalone utility module for the CoffeeBean framework: thread-safe singleton, MonoSingleton, Unity main-thread dispatcher, thread-pool runner, native in-app review (iOS StoreKit / Google Play In-App Review), native device region/language, a drop-in general-purpose loading overlay (ref-counted, thread-safe, auto-hide failsafe), and one-click Git integration for third-party libraries (UniRx / UniTask). Hard-depends on UniRx + UniTask so every project on the framework has them. No dependency on other CoffeeBean modules.",
+  "description": "Standalone utility module for the CoffeeBean framework: thread-safe singleton, MonoSingleton, Unity main-thread dispatcher, thread-pool runner, native in-app review (iOS StoreKit / Google Play In-App Review), native device region/language, a drop-in general-purpose loading overlay (ref-counted, thread-safe, auto-hide failsafe). Hard-depends on UniRx + UniTask so every project on the framework has them (installed together with the module via the registry; no opt-in menu). No dependency on other CoffeeBean modules.",
   "unity": "6000.0",
   "author": {
     "name": "Herschy0829"
   },
-  "keywords": ["coffeebean", "tools", "singleton", "thread", "main-thread", "review", "locale", "loading", "unirx", "unitask", "third-party"],
+  "keywords": ["coffeebean", "tools", "singleton", "thread", "main-thread", "review", "locale", "loading", "unirx", "unitask"],
   "dependencies": {
     "com.unity.ugui": "2.0.0",
     "com.cysharp.unitask": "2.5.11",
